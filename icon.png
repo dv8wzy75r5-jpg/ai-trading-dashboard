@@ -1,1 +1,91 @@
+from PIL import Image, ImageDraw, ImageFilter
+import math
 
+SIZE = 1024
+
+# Hintergrund
+img = Image.new("RGBA", (SIZE, SIZE), (15, 18, 25, 255))
+draw = ImageDraw.Draw(img)
+
+# Abgerundetes App-Symbol
+margin = 55
+radius = 210
+
+draw.rounded_rectangle(
+    (margin, margin, SIZE - margin, SIZE - margin),
+    radius=radius,
+    fill=(24, 29, 40, 255)
+)
+
+# Dezenter Glow
+glow = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+gdraw = ImageDraw.Draw(glow)
+
+cx, cy = SIZE // 2, SIZE // 2
+
+for r in range(300, 20, -8):
+    alpha = int(2 + (300 - r) * 0.12)
+    gdraw.ellipse(
+        (cx-r, cy-r, cx+r, cy+r),
+        fill=(80, 170, 255, max(0, min(alpha, 35)))
+    )
+
+glow = glow.filter(ImageFilter.GaussianBlur(35))
+img = Image.alpha_composite(img, glow)
+
+draw = ImageDraw.Draw(img)
+
+# Hauptsymbol:
+# stilisierter "KI/Trading"-Pfeil
+points = [
+    (250, 610),
+    (390, 470),
+    (500, 555),
+    (700, 350),
+    (700, 465),
+    (760, 300),
+    (595, 315),
+    (665, 370),
+    (500, 515),
+    (390, 430),
+    (250, 565)
+]
+
+draw.polygon(points, fill=(105, 190, 255, 255))
+
+# Innerer Akzent
+draw.line(
+    [(300, 610), (405, 505), (500, 585), (700, 385)],
+    fill=(235, 248, 255, 255),
+    width=28,
+    joint="curve"
+)
+
+# Kleiner Punkt für den Bot/AI-Charakter
+draw.ellipse(
+    (465, 650, 559, 744),
+    fill=(105, 190, 255, 255)
+)
+
+draw.ellipse(
+    (492, 677, 532, 717),
+    fill=(235, 248, 255, 255)
+)
+
+# Schatten/Abdeckung an den Ecken
+# sorgt für einen modernen iOS-Look
+mask = Image.new("L", (SIZE, SIZE), 0)
+mdraw = ImageDraw.Draw(mask)
+mdraw.rounded_rectangle(
+    (margin, margin, SIZE - margin, SIZE - margin),
+    radius=radius,
+    fill=255
+)
+
+img.putalpha(mask)
+
+# PNG speichern
+img.save("icon.png", "PNG")
+
+print("icon.png wurde erfolgreich erstellt.")
+print("Größe: 1024 x 1024 px")
